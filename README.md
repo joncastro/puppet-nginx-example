@@ -49,3 +49,32 @@ If more boxes are willing to be supported minor adjustment could be required in 
 ## A bit more detail of insides
 
 When vagrant up is executed, it creates a new vm based on the configured box, mount http directory as a virtualbox share folder and execute puppet module in the vm. The puppet module ensure all the requirements to have an stable and consistent nginx server with a simple site. It ensures users, files, services, packages, configurations and others dependencies are configured properly. To make all those components consistent there are dependencies between the different them. For example, service nginx cannot start unless the package is installed.
+
+
+## Questions
+
+1. **Describe the most difficult/painful hurdle you had to overcome in implementing your solution.**<br/>
+I wanted to support most of the puppet-vagrant-boxes flavors (Ubuntu, Debian, Fedora and Centos) and it took me some time to detect the differences between the different linux distributions to install nginx properly. For example, Centos requires Epel repository to make nginx package available through yum, or Fedora requires to stop the firewall because it blocks 8000 port. So, it was a little painful to test and tune Puppet module to consider all these cases.
+
+2. **Describe which puppet related concept you think is the hardest for new users to grasp.**<br/>
+Understanding correctly resource abstraction probably is the first difficulty and also the key to success in Puppet. Once, you got clear how files, users, packages, services, ... are just treated as a simple resources that you could combine to build a desired state of a system then you understand how easily is to automate it.
+
+3. **Please comment on the concept embodied by the second requirement of the solution(ii)**<br/>
+Installing nginx server serving a simple html requires configuring many dependencies. For example, we must tune nginx.conf file, this file contains the unix users to run the service and that user must exists. So, in order to have nginx running with a simple site configuration we must ensure many pre-requisites like firewall, users, configuration files, service status and so on are being satisfied. Puppet gives us the ability to ensure a desire state just describing how we want to configure all these resources avoiding failures.<br/>
+On the other side, Puppet checks periodically if the state is the desired one. If not, it modifies the resource again to the one that we defined. For example, nginx package is only installed if it doesn’t exist, or nginx is started if it is stopped and so on. So, the full state is checked and in case there is everything as expected, no action is required. If some resources are not correct they will be recovered taking into account their dependencies.<br/>
+Notice: my exercise was based on vagrant and puppet masterless. If we want to force to check the desired state again we have just need to execute “vagrant provision”. In an environment with a Puppet master each node will check its state periodically.
+
+4. **Where did you go to find information to help you in the build process?**<br/>
+I’ve mainly used following documentation<br/>
+Puppet Type Reference to check the parameters<br/>
+http://docs.puppetlabs.com/references/latest/type.html <br/>
+Vagrant Puppet Provisioner <br/>
+http://docs.vagrantup.com/v2/provisioning/puppet_apply.html <br/>
+I’ve reviewed a couple of vagrant and puppet examples <br/>
+https://github.com/patrickdlee/vagrant-examples <br/>
+I’ve reviewed how nginx is installed <br/>
+http://www.cyberciti.biz/faq/install-nginx-centos-rhel-6-server-rpm-using-yum-command/ <br/>
+
+5 . **In a couple paragraphs explain what automation means to you and why it is important to an organization's infrastructure design strategy.**<br/>
+Automation is the ability to reduce any human interaction in order to improve performance, accuracy, quality, and stability of a system. In the context of IT infrastructures there are many dependencies, like servers, operating systems, networking, storage, packages, services, users, application configurations, ... and it is required to set all those dependencies in a certain state in order to have an stable system that meets users demands. So, automation is a key piece that gives us the ability to automate the process of setting a complete IT infrastructure in the desired state.<br/>
+IT infrastructures are constantly evolving; they are continuously requiring new services, new servers, new software versions, scaling, ... Through automation we are able to minimize the time of delivering those changes into the infrastructure and at the same time we are able to keep consistency, reduce failures and prevent errors.
